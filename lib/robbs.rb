@@ -3,7 +3,13 @@
 require "curses"
 require "forwardable"
 require "tty"
-require "robbs/draw"
+
+require "robbs/draw/shape"
+require "robbs/draw/h_line"
+require "robbs/draw/v_line"
+require "robbs/draw/canvas"
+require "robbs/draw/box"
+require "robbs/animate"
 require "robbs/demo"
 
 module Robbs
