@@ -1,16 +1,19 @@
 #!/usr/bin/env ruby
 
-require "curses"
+require "rurses"
 require "forwardable"
 require "tty"
+require "logger"
+require "timeout"
 
-require "robbs/draw/shape"
-require "robbs/draw/h_line"
-require "robbs/draw/v_line"
-require "robbs/draw/canvas"
+require "robbs/draw/fill"
+require "robbs/draw/border"
+require "robbs/draw/text"
 require "robbs/draw/box"
-require "robbs/animate"
+require "robbs/animate/box"
 require "robbs/demo"
+
+$logger = Logger.new(File.open('robbs.log', "w+"))
 
 module Robbs
   def self.run
@@ -18,24 +21,14 @@ module Robbs
     Demo.start
   end
 
-  private
-
-  def self.onsig(signal)
-    Curses.close_screen
-    exit signal
-  end
-
   def self.setup
     %w[HUP INT QUIT TERM].each do |sig|
-      unless trap(sig, "IGNORE") == "IGNORE"
-        trap(sig) {|s| onsig(s) }
+      next if trap(sig, "IGNORE") == "IGNORE"
+
+      trap(sig) do |signal|
+        Rurses.curses.endwin
+        exit signal
       end
     end
-
-    Curses.init_screen
-    Curses.nl
-    Curses.noecho
-    Curses.curs_set 0
-    Curses.setpos(0, 0)
   end
 end

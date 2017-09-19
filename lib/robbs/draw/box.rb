@@ -2,51 +2,33 @@
 
 module Robbs
   module Draw
-    class Box
-      include Shape
-      extend Forwardable
+    class Box < Rurses::Window
+      include Text
+      include Border
+      include Fill
 
-      def_instance_delegator :@canvas, :fill
-      def_instance_delegator :@canvas, :text
-
-      attr_reader :x1, :y1, :x2, :y2, :x_char, :y_char, :canvas
-
-      def initialize(x1, y1, x2, y2, x_char: "-", y_char: "|")
-        @x1 = x1
-        @y1 = y1
-        @x2 = x2
-        @y2 = y2
-        @x_char = x_char
-        @y_char = y_char
-        @canvas = Canvas.new(x1+1, y1+1, x2-1, y2-1)
+      def initialize(**details)
+        super
+        display_border
+        create_subwindow(name: :text_area, top_padding: 1, bottom_padding: 1, left_padding: 1, right_padding: 1)
       end
 
-      def draw
-        HLine.new(y1, x1, x2, x_char).draw
-        VLine.new(x1, x1, y2, y_char).draw
-        HLine.new(y2, x1, x2, x_char).draw
-        VLine.new(x2, x1, y2, y_char).draw
-        fill
-        corners unless y_char == " " and x_char == " "
+      alias_method :refresh, :refresh_in_memory
 
-        self
-      end
+      def create_subwindow(name: , top_padding: 0, left_padding: 0, right_padding: 0, bottom_padding: 0)
+        s  = size
+        xy = cursor_xy
 
-      def destroy(char = " ")
-        (y1..y2).each do |row|
-          (x1..x2).each do |col|
-            write(col, row, char)
-          end
-        end
-      end
-
-      private
-
-      def corners(char = "+")
-        write(x1, y1, "+")
-        write(x2, y1, "+")
-        write(x2, y2, "+")
-        write(x1, y2, "+")
+        subwindows[name] =
+          Rurses::Window.new(
+            curses_ref: Rurses.curses.derwin(
+              curses_ref,
+              s[:lines]   - (top_padding  + bottom_padding),
+              s[:columns] - (left_padding + right_padding),
+              xy[:y]      + top_padding,
+              xy[:x]      + left_padding
+            )
+          )
       end
     end
   end
